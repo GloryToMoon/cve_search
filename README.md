@@ -3,5 +3,5 @@
 Поиск происходит через сайты  
 https://cve.mitre.org/  
 https://nvd.nist.gov/  
-Пример выполнения команды:  
+Пример выполнения скрипта:  
 ![alt text](preview1.jpg)  
