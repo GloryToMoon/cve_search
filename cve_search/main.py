@@ -93,7 +93,7 @@ def main(keywords):
 				output(exploitdb,20)
 
 if __name__ == "__main__":
-	parser = argparse.ArgumentParser(usage="python %(prog)s <file with search keywords>",conflict_handler='resolve')
+	parser = argparse.ArgumentParser()
 	parser.add_argument('keywords', nargs='*', action='store', type=str, help='Keywords for search vulnerability')
 	parser.add_argument('-f', dest='file', default=[], action="store", type=read_file, help='File with keywords')
 	parser.add_argument('-v', action="count", default=0, help='Description of vulnerability, -vv for search exploits')
