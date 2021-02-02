@@ -18,17 +18,17 @@ def output(val, num=0):
 			if i!=len(val)-1 and len(out+val[i+1])<80:
 				out+=val[i]+" "
 			elif i==len(val)-1:
-				print "| "+" "*num+out+val[i]
+				print ("| "+" "*num+out+val[i])
 			else:
-				print "| "+" "*num+out+val[i]
+				print ("| "+" "*num+out+val[i])
 				out=""
 	else:
-		print "| "+" "*num+val
+		print ("| "+" "*num+val)
 
 def request(keyword):
-        url="https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="+keyword
-        req=urllib2.Request(url)
-        resp=urllib2.urlopen(req)
+	url="https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="+keyword
+	req=urllib2.Request(url)
+	resp=urllib2.urlopen(req)
 	return resp.read()
 
 def parse(html):
@@ -38,9 +38,9 @@ def parse(html):
 	return out
 
 def nist(cve):
-        url="https://nvd.nist.gov/vuln/detail/"+cve
-        req=urllib2.Request(url)
-        resp=urllib2.urlopen(req)
+	url="https://nvd.nist.gov/vuln/detail/"+cve
+	req=urllib2.Request(url)
+	resp=urllib2.urlopen(req)
 	html=" ".join("".join(resp.read().split("\t")).split("\r\n"))
 	if len(html.split("<h2>")) == 2:
 		return 0
@@ -94,11 +94,14 @@ def main(keywords):
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(usage="python %(prog)s <file with search keywords>",conflict_handler='resolve')
-	parser.add_argument('-k', dest='file', action="append", type=str, help='Keyword for search vulnerability')
-	parser.add_argument('file', action="store", type=read_file, help='File with keywords')
+	parser.add_argument('keywords', nargs='*', action='store', type=str, help='Keywords for search vulnerability')
+	parser.add_argument('-f', dest='file', default=[], action="store", type=read_file, help='File with keywords')
 	parser.add_argument('-v', action="count", default=0, help='Description of vulnerability, -vv for search exploits')
 	args = parser.parse_args()
+	for keyword in args.keywords:
+		args.file.append(keyword)
+	args.file=list(set(args.file))
 	try:
 		main(args.file)
 	except KeyboardInterrupt:
-		print "\nExit..."
+		print ("\nExit...")
