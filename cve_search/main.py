@@ -1,18 +1,35 @@
-import sys
+import json
+import argparse
 import urllib, urllib2
 
-def help():
-	print "Usage: python "+sys.argv[0]+" <file with search keywords>"
-	print "Example: python"+sys.argv[0]+" libs.txt"
-	print "Use key \"-v\" to search in nvd.nist.gov CVE DB"
-	print "Use key \"-vv\" to print description of vulnerability"
-	sys.exit()
+def read_file(file):
+	file=open(file,"r")
+	out=file.read().split("\n")
+	file.close()
+	for i in range(0,out.count("")):
+		out.remove("")
+	return out
+
+def output(val, num=0):
+	if len(val)>80:
+		val=val.split(" ")
+		out=""
+		for i in range(0, len(val)):
+			if i!=len(val)-1 and len(out+val[i+1])<80:
+				out+=val[i]+" "
+			elif i==len(val)-1:
+				print "| "+" "*num+out+val[i]
+			else:
+				print "| "+" "*num+out+val[i]
+				out=""
+	else:
+		print "| "+" "*num+val
 
 def request(keyword):
         url="https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="+keyword
         req=urllib2.Request(url)
         resp=urllib2.urlopen(req)
-	return(resp.read())
+	return resp.read()
 
 def parse(html):
 	out=[]
@@ -24,61 +41,64 @@ def nist(cve):
         url="https://nvd.nist.gov/vuln/detail/"+cve
         req=urllib2.Request(url)
         resp=urllib2.urlopen(req)
-	html=resp.read()
+	html=" ".join("".join(resp.read().split("\t")).split("\r\n"))
 	if len(html.split("<h2>")) == 2:
 		return 0
 	out=[]
 	out.append(url)
-	html="".join(html.split("\t"))
-	html=" ".join(html.split("\r\n"))
 	score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
 	out.append("Base Score: "+score)
-	out.append("Description: "+html.split('"vuln-description">')[1].split("</p>")[0])
+	out.append("Description: "+html.split('"vuln-description">')[1].split("</p>")[0].replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'"))
 	return out
 
-if __name__ == "__main__":
-	nvd=False
-	desc=False
-	if sys.argv.count("-v")>0:
-		nvd=True
-		sys.argv.remove("-v")
-	if sys.argv.count("-vv")>0:
-		nvd=True
-		desc=True
-		sys.argv.remove("-vv")
-	if len(sys.argv)<2:
-		help()
-	try:
-		file=open(sys.argv[1],"r")
-	except:
-		help()
-	keywords=file.read().split("\n")[:-1]
-	file.close()
-	zero=[]
-	c1="1"
-	for keyword in keywords:
-		html=request(keyword)
-		mas=parse(html)
-		if len(mas)==0:
-			zero.append(keyword)
-		else:
-			print ("["+c1+"] "+keyword)
-			print ("[+] "+" "*5+"Total results: "+str(len(mas)))
-			c1=str(int(c1)+1)
-		c2="1"
-		for i in mas:
-			print "["+c2+"]"+" "*10+i
-			if nvd==True:
-				second=nist(i)
-				print "[+] "+" "*15+second[1]
-				if desc == True:
-					print "[+] "+" "*15+second[2]
-				print "[+] "+" "*15+"Sources:"
-				print "[+] "+" "*20+second[0]
-			else:
-				print "[+] "+" "*15+"Sources:"
-			print "[+] "+" "*20+"https://cve.mitre.org/cgi-bin/cvename.cgi?name="+i
-			c2=str(int(c2)+1)
+def search_exploit(cve):
+	cve="-".join(cve.split("-")[1:])
+	url="https://www.exploit-db.com/search?cve="+cve+"&draw=1&columns%5B0%5D%5Bdata%5D=date_published&columns%5B0%5D%5Bname%5D=date_published&columns%5B0%5D%5Bsearchable%5D=true&columns%5B0%5D%5Borderable%5D=true&columns%5B0%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B0%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B1%5D%5Bdata%5D=download&columns%5B1%5D%5Bname%5D=download&columns%5B1%5D%5Bsearchable%5D=false&columns%5B1%5D%5Borderable%5D=false&columns%5B1%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B1%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B2%5D%5Bdata%5D=application_md5&columns%5B2%5D%5Bname%5D=application_md5&columns%5B2%5D%5Bsearchable%5D=true&columns%5B2%5D%5Borderable%5D=false&columns%5B2%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B2%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B3%5D%5Bdata%5D=verified&columns%5B3%5D%5Bname%5D=verified&columns%5B3%5D%5Bsearchable%5D=true&columns%5B3%5D%5Borderable%5D=false&columns%5B3%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B3%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B4%5D%5Bdata%5D=description&columns%5B4%5D%5Bname%5D=description&columns%5B4%5D%5Bsearchable%5D=true&columns%5B4%5D%5Borderable%5D=false&columns%5B4%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B4%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B5%5D%5Bdata%5D=type_id&columns%5B5%5D%5Bname%5D=type_id&columns%5B5%5D%5Bsearchable%5D=true&columns%5B5%5D%5Borderable%5D=false&columns%5B5%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B5%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B6%5D%5Bdata%5D=platform_id&columns%5B6%5D%5Bname%5D=platform_id&columns%5B6%5D%5Bsearchable%5D=true&columns%5B6%5D%5Borderable%5D=false&columns%5B6%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B6%5D%5Bsearch%5D%5Bregex%5D=false&columns%5B7%5D%5Bdata%5D=author_id&columns%5B7%5D%5Bname%5D=author_id&columns%5B7%5D%5Bsearchable%5D=false&columns%5B7%5D%5Borderable%5D=false&columns%5B7%5D%5Bsearch%5D%5Bvalue%5D=&columns%5B7%5D%5Bsearch%5D%5Bregex%5D=false&order%5B0%5D%5Bcolumn%5D=0&order%5B0%5D%5Bdir%5D=desc&start=0&length=15&search%5Bvalue%5D=&search%5Bregex%5D=false"
+	req=urllib2.Request(url)
+	req.add_header("X-Requested-With","XMLHttpRequest")
+	resp=urllib2.urlopen(req)
+	exploits=json.loads(resp.read())
+	out=[]
+	out.append("https://www.exploit-db.com/search?cve="+cve)
+	for exploit in  exploits["data"]:
+		out.append(exploit["description"][1].replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'"))
+	return out
 
-	for i in zero:
-		print("[-] Not found for "+i)
+def main(keywords):
+	for keyword in keywords:
+		cve_list=parse(request(keyword))
+		if len(cve_list)!=0:
+			output (keyword)
+			output ("Total results: "+str(len(cve_list)),5)
+		for cve in cve_list:
+			second=nist(cve)
+			output (cve,10)
+			output (second[1],15)
+			if args.v > 0:
+				output (second[2],15)
+			if args.v > 1:
+				exploits=search_exploit(cve)
+				if len(exploits)==1:
+					exploitdb=None
+				else:
+					output("Total exploits: "+str(len(exploits)-1),15)
+					output("Exploits:",20)
+					exploitdb=exploits[0]
+					for exploit in exploits[1:]:
+						output(exploit,25)
+			output ("Sources:",15)
+			output (second[0],20)
+			output ("https://cve.mitre.org/cgi-bin/cvename.cgi?name="+cve,20)
+			if args.v > 1 and exploitdb!=None:
+				output(exploitdb,20)
+
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser(usage="python %(prog)s <file with search keywords>",conflict_handler='resolve')
+	parser.add_argument('-k', dest='file', action="append", type=str, help='Keyword for search vulnerability')
+	parser.add_argument('file', action="store", type=read_file, help='File with keywords')
+	parser.add_argument('-v', action="count", default=0, help='Description of vulnerability, -vv for search exploits')
+	args = parser.parse_args()
+	try:
+		main(args.file)
+	except KeyboardInterrupt:
+		print "\nExit..."
