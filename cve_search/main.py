@@ -34,7 +34,9 @@ def request(keyword):
 def parse(html):
 	out=[]
 	for i in html.split("<tr>")[8:-5]:
-		out.append(i.split('<a href="/cgi-bin/cvename.cgi?name=')[1].split('">')[0])
+		check=i.split('<td valign="top">')[1]
+		if check[0:14]!="** RESERVED **" and check[0:12]!="** REJECT **":
+			out.append(i.split('<a href="/cgi-bin/cvename.cgi?name=')[1].split('">')[0])
 	return out
 
 def nist(cve):
@@ -73,8 +75,9 @@ def main(keywords):
 		for cve in cve_list:
 			second=nist(cve)
 			output (cve,10)
-			output (second[1],15)
-			if args.v > 0:
+			if second!=0:
+				output (second[1],15)
+			if args.v > 0 and second!=0:
 				output (second[2],15)
 			if args.v > 1:
 				exploits=search_exploit(cve)
@@ -87,7 +90,8 @@ def main(keywords):
 					for exploit in exploits[1:]:
 						output(exploit,25)
 			output ("Sources:",15)
-			output (second[0],20)
+			if second!=0:
+				output (second[0],20)
 			output ("https://cve.mitre.org/cgi-bin/cvename.cgi?name="+cve,20)
 			if args.v > 1 and exploitdb!=None:
 				output(exploitdb,20)
