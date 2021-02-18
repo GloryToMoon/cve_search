@@ -1,3 +1,5 @@
+#! /usr/bin/env python2
+# -*- coding: utf-8 -*-
 import json
 import argparse
 import urllib, urllib2
@@ -70,7 +72,7 @@ def main(keywords):
 	for keyword in keywords:
 		cve_list=parse(request(keyword))
 		if len(cve_list)!=0:
-			output (keyword)
+			output (keyword.replace("%20", " "))
 			output ("Total results: "+str(len(cve_list)),5)
 		for cve in cve_list:
 			second=nist(cve)
@@ -103,7 +105,7 @@ if __name__ == "__main__":
 	parser.add_argument('-v', action="count", default=0, help='Description of vulnerability, -vv for search exploits')
 	args = parser.parse_args()
 	for keyword in args.keywords:
-		args.file.append(keyword)
+		args.file.append(keyword.replace(" ", "%20"))
 	args.file=list(set(args.file))
 	try:
 		main(args.file)
