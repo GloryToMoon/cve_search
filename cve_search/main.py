@@ -4,6 +4,13 @@ import json
 import argparse
 import urllib, urllib2
 
+class bcolors:
+	LOW = '\033[92m'
+	MEDIUM = '\033[93m'
+	HIGHT = '\033[91m'
+	CRITICAL = '\033[1m'
+	ENDC = '\033[0m'
+
 def read_file(file):
 	file=open(file,"r")
 	out=file.read().split("\n")
@@ -51,6 +58,18 @@ def nist(cve):
 	out=[]
 	out.append(url)
 	score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
+	score_num=score.split()[0]
+	if score_num=="N/A":
+		score=score
+	elif float(score_num)<4.0:
+		score=bcolors.LOW+score+bcolors.ENDC
+	elif float(score_num)>=4.0 and float(score_num)<=7.0:
+		score=bcolors.MEDIUM+score+bcolors.ENDC
+	elif float(score_num)>=7.0 and float(score_num)<=9.0:
+		score=bcolors.HIGHT+score+bcolors.ENDC
+	elif float(score_num)>=9.0 and float(score_num)<=10.0:
+		score=bcolors.CRITICAL+score+bcolors.ENDC
+
 	out.append("Base Score: "+score)
 	out.append("Description: "+html.split('"vuln-description">')[1].split("</p>")[0].replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'"))
 	return out
@@ -86,7 +105,7 @@ def main(keywords):
 				if len(exploits)==1:
 					exploitdb=None
 				else:
-					output("Total exploits: "+str(len(exploits)-1),15)
+					output("Total exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,15)
 					output("Exploits:",20)
 					exploitdb=exploits[0]
 					for exploit in exploits[1:]:
