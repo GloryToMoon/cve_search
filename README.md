@@ -18,5 +18,4 @@ https://nvd.nist.gov/
   
 Поиск эксплойтов проводится через сайт https://www.exploit-db.com/  
 Пример выполнения скрипта:  
-  
 ![alt text](preview1.jpg)  
