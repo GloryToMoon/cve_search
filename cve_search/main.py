@@ -4,6 +4,13 @@ import json
 import argparse
 import urllib, urllib2
 
+class bcolors:
+	LOW = '\033[92m'
+	MEDIUM = '\033[93m'
+	HIGHT = '\033[91m'
+	CRITICAL = '\033[1m'
+	ENDC = '\033[0m'
+
 def read_file(file):
 	file=open(file,"r")
 	out=file.read().split("\n")
@@ -78,6 +85,14 @@ def main(keywords):
 			second=nist(cve)
 			output (cve,10)
 			if second!=0:
+				if float(second[1].split()[2])<4.0:
+					second[1]="Base Score: "+bcolors.LOW+" ".join(second[1].split()[2:])+bcolors.ENDC
+				elif float(second[1].split()[2])>=4.0 and float(second[1].split()[2])<=7.0:
+					second[1]="Base Score: "+bcolors.MEDIUM+" ".join(second[1].split()[2:])+bcolors.ENDC
+				elif float(second[1].split()[2])>=7.0 and float(second[1].split()[2])<=9.0:
+					second[1]="Base Score: "+bcolors.HIGHT+" ".join(second[1].split()[2:])+bcolors.ENDC
+				elif float(second[1].split()[2])>=9.0 and float(second[1].split()[2])<=10.0:
+					second[1]="Base Score: "+bcolors.CRITICAL+" ".join(second[1].split()[2:])+bcolors.ENDC
 				output (second[1],15)
 			if args.v > 0 and second!=0:
 				output (second[2],15)
@@ -86,7 +101,7 @@ def main(keywords):
 				if len(exploits)==1:
 					exploitdb=None
 				else:
-					output("Total exploits: "+str(len(exploits)-1),15)
+					output("Total exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,15)
 					output("Exploits:",20)
 					exploitdb=exploits[0]
 					for exploit in exploits[1:]:
