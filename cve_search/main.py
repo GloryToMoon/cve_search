@@ -58,6 +58,18 @@ def nist(cve):
 	out=[]
 	out.append(url)
 	score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
+	score_num=score.split()[0]
+	if score_num=="N/A":
+		score=score
+	elif float(score_num)<4.0:
+		score=bcolors.LOW+score+bcolors.ENDC
+	elif float(score_num)>=4.0 and float(score_num)<=7.0:
+		score=bcolors.MEDIUM+score+bcolors.ENDC
+	elif float(score_num)>=7.0 and float(score_num)<=9.0:
+		score=bcolors.HIGHT+score+bcolors.ENDC
+	elif float(score_num)>=9.0 and float(score_num)<=10.0:
+		score=bcolors.CRITICAL+score+bcolors.ENDC
+
 	out.append("Base Score: "+score)
 	out.append("Description: "+html.split('"vuln-description">')[1].split("</p>")[0].replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'"))
 	return out
@@ -85,14 +97,6 @@ def main(keywords):
 			second=nist(cve)
 			output (cve,10)
 			if second!=0:
-				if float(second[1].split()[2])<4.0:
-					second[1]="Base Score: "+bcolors.LOW+" ".join(second[1].split()[2:])+bcolors.ENDC
-				elif float(second[1].split()[2])>=4.0 and float(second[1].split()[2])<=7.0:
-					second[1]="Base Score: "+bcolors.MEDIUM+" ".join(second[1].split()[2:])+bcolors.ENDC
-				elif float(second[1].split()[2])>=7.0 and float(second[1].split()[2])<=9.0:
-					second[1]="Base Score: "+bcolors.HIGHT+" ".join(second[1].split()[2:])+bcolors.ENDC
-				elif float(second[1].split()[2])>=9.0 and float(second[1].split()[2])<=10.0:
-					second[1]="Base Score: "+bcolors.CRITICAL+" ".join(second[1].split()[2:])+bcolors.ENDC
 				output (second[1],15)
 			if args.v > 0 and second!=0:
 				output (second[2],15)
