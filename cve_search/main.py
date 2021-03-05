@@ -8,7 +8,7 @@ class bcolors:
 	LOW = '\033[92m'
 	MEDIUM = '\033[93m'
 	HIGHT = '\033[91m'
-	CRITICAL = '\033[1m'
+	CRITICAL = '\033[1;40m'
 	ENDC = '\033[0m'
 
 def read_file(file):
@@ -57,21 +57,23 @@ def nist(cve):
 		return 0
 	out=[]
 	out.append(url)
-	score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
+	try:
+		score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
+	except:
+		return 0
 	score_num=score.split()[0]
 	if score_num=="N/A":
 		score=score
-	elif float(score_num)<4.0:
+	elif float(score_num)<4:
 		score=bcolors.LOW+score+bcolors.ENDC
-	elif float(score_num)>=4.0 and float(score_num)<=7.0:
+	elif float(score_num)>=4 and float(score_num)<=7:
 		score=bcolors.MEDIUM+score+bcolors.ENDC
-	elif float(score_num)>=7.0 and float(score_num)<=9.0:
+	elif float(score_num)>=7 and float(score_num)<=9:
 		score=bcolors.HIGHT+score+bcolors.ENDC
-	elif float(score_num)>=9.0 and float(score_num)<=10.0:
+	elif float(score_num)>=9:
 		score=bcolors.CRITICAL+score+bcolors.ENDC
-
 	out.append("Base Score: "+score)
-	out.append("Description: "+html.split('"vuln-description">')[1].split("</p>")[0].replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'"))
+	out.append("Description: "+html.split('"vuln-description">')[1].split("</p>")[0].replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#39;","'"))
 	return out
 
 def search_exploit(cve):
@@ -102,20 +104,17 @@ def main(keywords):
 				output (second[2],15)
 			if args.v > 1:
 				exploits=search_exploit(cve)
-				if len(exploits)==1:
-					exploitdb=None
-				else:
+				if len(exploits)>1:
 					output("Total exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,15)
 					output("Exploits:",20)
-					exploitdb=exploits[0]
 					for exploit in exploits[1:]:
 						output(exploit,25)
 			output ("Sources:",15)
 			if second!=0:
 				output (second[0],20)
 			output ("https://cve.mitre.org/cgi-bin/cvename.cgi?name="+cve,20)
-			if args.v > 1 and exploitdb!=None:
-				output(exploitdb,20)
+			if args.v > 1 and len(exploits)>1:
+				output(exploits[0],20)
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
@@ -126,6 +125,9 @@ if __name__ == "__main__":
 	for keyword in args.keywords:
 		args.file.append(keyword.replace(" ", "%20"))
 	args.file=list(set(args.file))
+	if len(args.file)<1:
+		parser.print_help()
+		exit()
 	try:
 		main(args.file)
 	except KeyboardInterrupt:
