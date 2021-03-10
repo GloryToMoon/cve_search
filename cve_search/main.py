@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import json
 import argparse
-import urllib, urllib2
+import urllib2
 
 class bcolors:
 	LOW = '\033[92m'
@@ -15,7 +15,7 @@ def read_file(file):
 	file=open(file,"r")
 	out=file.read().split("\n")
 	file.close()
-	for i in range(0,out.count("")):
+	while out.count("")!=0:
 		out.remove("")
 	return out
 
