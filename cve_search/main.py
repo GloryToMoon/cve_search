@@ -23,7 +23,7 @@ def output(val, num=0):
 	if len(val)>80:
 		val=val.split(" ")
 		out=""
-		for i in range(0, len(val)):
+		for i in range(len(val)):
 			if i!=len(val)-1 and len(out+val[i+1])<80:
 				out+=val[i]+" "
 			elif i==len(val)-1:
