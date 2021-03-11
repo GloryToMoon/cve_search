@@ -25,7 +25,7 @@ def output(val, num=0):
 	for i in val:
 		out+=i+" "
 		if len(out+i)>80 or i==val[-1]:
-			print "| "+" "*num+out
+			print ("| "+" "*num+out)
 			out=""
 
 def request(keyword):
