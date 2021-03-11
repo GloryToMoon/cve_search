@@ -20,7 +20,7 @@ def read_file(file):
 	return out
 
 def output(val, num=0):
-	val=val.split(" ")
+	val=val.split()
 	out=""
 	for i in val:
 		out+=i+" "
