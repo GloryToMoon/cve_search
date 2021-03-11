@@ -29,8 +29,7 @@ def output(val, num=0):
 			out=""
 
 def request(keyword):
-	url="https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="+keyword
-	req=urllib2.Request(url)
+	req=urllib2.Request("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="+keyword)
 	resp=urllib2.urlopen(req)
 	return resp.read()
 
