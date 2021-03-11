@@ -20,19 +20,13 @@ def read_file(file):
 	return out
 
 def output(val, num=0):
-	if len(val)>80:
-		val=val.split(" ")
-		out=""
-		for i in range(len(val)):
-			if i!=len(val)-1 and len(out+val[i+1])<80:
-				out+=val[i]+" "
-			elif i==len(val)-1:
-				print ("| "+" "*num+out+val[i])
-			else:
-				print ("| "+" "*num+out+val[i])
-				out=""
-	else:
-		print ("| "+" "*num+val)
+	val=val.split(" ")
+	out=""
+	for i in val:
+		out+=i+" "
+		if len(out+i)>80 or i==val[-1]:
+			print "| "+" "*num+out
+			out=""
 
 def request(keyword):
 	url="https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="+keyword
