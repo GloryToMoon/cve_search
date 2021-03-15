@@ -25,7 +25,7 @@ def output(val, num=0):
 	for i in val:
 		out+=i+" "
 		if len(out+i)>80 or i==val[-1]:
-			print ("| "+" "*num+out)
+			print ("| {}{}".format(" "*num,out))
 			out=""
 
 def request(keyword):
@@ -51,10 +51,10 @@ def nist(cve):
 	out=[]
 	out.append(url)
 	score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
+	if score.split()[0]=="N/A":
+		score=html.split("Cvss2CalculatorAnchor")[1].split(">")[1].split("<")[0]
 	score_num=score.split()[0]
-	if score_num=="N/A":
-		score=score
-	elif float(score_num)<4:
+	if float(score_num)<4:
 		score=bcolors.LOW+score+bcolors.ENDC
 	elif float(score_num)>=4 and float(score_num)<=7:
 		score=bcolors.MEDIUM+score+bcolors.ENDC
