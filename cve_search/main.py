@@ -54,14 +54,15 @@ def nist(cve):
 	if score.split()[0]=="N/A":
 		score=html.split("Cvss2CalculatorAnchor")[1].split(">")[1].split("<")[0]
 	score_num=score.split()[0]
-	if float(score_num)<4:
-		score=bcolors.LOW+score+bcolors.ENDC
-	elif float(score_num)>=4 and float(score_num)<=7:
-		score=bcolors.MEDIUM+score+bcolors.ENDC
-	elif float(score_num)>=7 and float(score_num)<=9:
-		score=bcolors.HIGHT+score+bcolors.ENDC
-	elif float(score_num)>=9:
-		score=bcolors.CRITICAL+score+bcolors.ENDC
+	if score_num!="N/A":
+		if float(score_num)<4:
+			score=bcolors.LOW+score+bcolors.ENDC
+		elif float(score_num)>=4 and float(score_num)<=7:
+			score=bcolors.MEDIUM+score+bcolors.ENDC
+		elif float(score_num)>=7 and float(score_num)<=9:
+			score=bcolors.HIGHT+score+bcolors.ENDC
+		elif float(score_num)>=9:
+			score=bcolors.CRITICAL+score+bcolors.ENDC
 	out.append("Base Score: "+score)
 	out.append("Description: "+html.split('"vuln-description">')[1].split("</p>")[0].replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#39;","'"))
 	return out
