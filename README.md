@@ -7,7 +7,7 @@ https://nvd.nist.gov/
 Search exploits proceed from site https://www.exploit-db.com/  
   
 Example of executing script:  
-![alt text](preview1.jpg)  
+![alt text](https://github.com/GloryToMoon/cve_search/blob/assets/cve_search_work.png)  
   
   
 ## Поиск уязвимостей из открытых источников
@@ -18,4 +18,4 @@ https://nvd.nist.gov/
   
 Поиск эксплойтов проводится через сайт https://www.exploit-db.com/  
 Пример выполнения скрипта:  
-![alt text](preview1.jpg)  
+![alt text](https://github.com/GloryToMoon/cve_search/blob/assets/cve_search_work.png)  
