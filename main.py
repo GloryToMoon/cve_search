@@ -122,7 +122,7 @@ if __name__ == "__main__":
 	parser.add_argument('keywords', nargs='*', action='store', type=str, help='Keywords for search vulnerability')
 	parser.add_argument('-f', dest='file', default=[], action="store", type=read_file, help='File with keywords')
 	parser.add_argument('-v', action="count", default=0, help='Description of vulnerability, -vv for search exploits')
-	parser.add_argument('--exploits-only', dest="explonly", action="store_true", help='Description of vulnerability, -vv for search exploits')
+	parser.add_argument('--exploits-only', dest="explonly", action="store_true", help='Show vulnerabilities only with exploits')
 	args = parser.parse_args()
 	if args.explonly==True:
 		args.v=2
