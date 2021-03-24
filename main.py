@@ -23,9 +23,10 @@ def output(val, num=0):
 	val=val.split()
 	out=""
 	for i in val:
-		out+=i+" "
+		if len(i)<80:
+			out+=i+" "
 		if len(out+i)>80 or i==val[-1]:
-			print ("| {}{}".format(" "*num,out))
+			print ("| {}{}".format(" "*num,out).replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'").replace("&#39;","'"))
 			out=""
 
 def request(keyword):
@@ -45,7 +46,7 @@ def nist(cve):
 	url="https://nvd.nist.gov/vuln/detail/"+cve
 	req=urllib2.Request(url)
 	resp=urllib2.urlopen(req)
-	html=" ".join("".join(resp.read().split("\t")).split("\r\n"))
+	html=resp.read().replace("\t"," ").replace("\r\n"," ")
 	if len(html.split("<h2>")) == 2:
 		return 0
 	out=[]
@@ -64,7 +65,7 @@ def nist(cve):
 		elif float(score_num)>=9:
 			score=bcolors.CRITICAL+score+bcolors.ENDC
 	out.append("Base Score: "+score)
-	out.append("Description: "+html.split('"vuln-description">')[1].split("</p>")[0].replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#39;","'"))
+	out.append("Description: "+html.split('"vuln-description">')[1].split("</p>")[0])
 	return out
 
 def search_exploit(cve):
@@ -77,42 +78,54 @@ def search_exploit(cve):
 	out=[]
 	out.append("https://www.exploit-db.com/search?cve="+cve)
 	for exploit in  exploits["data"]:
-		out.append(exploit["description"][1].replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'"))
+		out.append(exploit["description"][1])
 	return out
+
+def enum_list(cve):
+	out=[]
+	exploit_check=False
+	out.append([cve,10])
+	if args.v > 0:
+		second=nist(cve)
+		if second!=0:
+			out.append([second[1],15])
+			out.append([second[2],15])
+	if args.v > 1:
+		exploits=search_exploit(cve)
+		if len(exploits)>1:
+			exploit_check=True
+			out.append(["Total exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,15])
+			out.append(["Exploits:",20])
+			for exploit in exploits[1:]:
+				out.append([exploit,25])
+	out.append(["Sources:",15])
+	if args.v>0 and second!=0:
+		out.append([second[0],20])
+	out.append(["https://cve.mitre.org/cgi-bin/cvename.cgi?name="+cve,20])
+	if args.v > 1 and len(exploits)>1:
+		out.append([exploits[0],20])
+	return out,exploit_check
 
 def main(keywords):
 	for keyword in keywords:
 		cve_list=parse(request(keyword))
-		if len(cve_list)!=0:
-			output (keyword.replace("%20", " "))
-			output ("Total results: "+str(len(cve_list)),5)
+		output(keyword.replace("%20", " "))
+		output("Total vulnerabilities: {}".format(len(cve_list)),10)
 		for cve in cve_list:
-			second=nist(cve)
-			output (cve,10)
-			if second!=0:
-				output (second[1],15)
-			if args.v > 0 and second!=0:
-				output (second[2],15)
-			if args.v > 1:
-				exploits=search_exploit(cve)
-				if len(exploits)>1:
-					output("Total exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,15)
-					output("Exploits:",20)
-					for exploit in exploits[1:]:
-						output(exploit,25)
-			output ("Sources:",15)
-			if second!=0:
-				output (second[0],20)
-			output ("https://cve.mitre.org/cgi-bin/cvename.cgi?name="+cve,20)
-			if args.v > 1 and len(exploits)>1:
-				output(exploits[0],20)
+			cve_enumed,exploit_check=(enum_list(cve))
+			if (args.explonly==True and exploit_check==True) or args.explonly==False:
+				for string in cve_enumed:
+					output(string[0],string[1])
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument('keywords', nargs='*', action='store', type=str, help='Keywords for search vulnerability')
 	parser.add_argument('-f', dest='file', default=[], action="store", type=read_file, help='File with keywords')
 	parser.add_argument('-v', action="count", default=0, help='Description of vulnerability, -vv for search exploits')
+	parser.add_argument('--exploits-only', dest="explonly", action="store_true", help='Description of vulnerability, -vv for search exploits')
 	args = parser.parse_args()
+	if args.explonly==True:
+		args.v=2
 	for keyword in args.keywords:
 		args.file.append(keyword.replace(" ", "%20"))
 	args.file=list(set(args.file))
