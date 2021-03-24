@@ -26,7 +26,7 @@ def output(val, num=0):
 		if len(i)<80:
 			out+=i+" "
 		if len(out+i)>80 or i==val[-1]:
-			print ("| {}{}".format(" "*num,out).replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'").replace("&#39;","'"))
+			print ("| {}{}".format(" "*num*5,out).replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'").replace("&#39;","'"))
 			out=""
 
 def request(keyword):
@@ -84,33 +84,34 @@ def search_exploit(cve):
 def enum_list(cve):
 	out=[]
 	exploit_check=False
-	out.append([cve,10])
+	out.append([cve,1])
 	if args.v > 0:
 		second=nist(cve)
 		if second!=0:
-			out.append([second[1],15])
-			out.append([second[2],15])
+			out.append([second[1],2])
+			out.append([second[2],2])
 	if args.v > 1:
 		exploits=search_exploit(cve)
 		if len(exploits)>1:
 			exploit_check=True
-			out.append(["Total exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,15])
-			out.append(["Exploits:",20])
+			out.append(["Total exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,2])
+			out.append(["Exploits:",3])
 			for exploit in exploits[1:]:
-				out.append([exploit,25])
-	out.append(["Sources:",15])
+				out.append([exploit,4])
+	out.append(["Sources:",2])
 	if args.v>0 and second!=0:
-		out.append([second[0],20])
-	out.append(["https://cve.mitre.org/cgi-bin/cvename.cgi?name="+cve,20])
+		out.append([second[0],3])
+	out.append(["https://cve.mitre.org/cgi-bin/cvename.cgi?name="+cve,3])
 	if args.v > 1 and len(exploits)>1:
-		out.append([exploits[0],20])
+		out.append([exploits[0],3])
 	return out,exploit_check
 
 def main(keywords):
 	for keyword in keywords:
 		cve_list=parse(request(keyword))
 		output(keyword.replace("%20", " "))
-		output("Total vulnerabilities: {}".format(len(cve_list)),10)
+		if args.explonly==False:
+			output("Total vulnerabilities: {}".format(len(cve_list)),1)
 		for cve in cve_list:
 			cve_enumed,exploit_check=(enum_list(cve))
 			if (args.explonly==True and exploit_check==True) or args.explonly==False:
