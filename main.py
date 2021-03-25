@@ -48,7 +48,7 @@ def nist(cve):
 	try:
 		resp=urllib2.urlopen(req)
 	except urllib2.HTTPError as error:
-		if e.code>=500:
+		if error.code>=500:
 			print ("\nhttps://nvd.nist.gov is returned 500 error.\nPlease wait a few seconds.")
 			exit(0)
 	html=resp.read().replace("\t"," ").replace("\r\n"," ")
