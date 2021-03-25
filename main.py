@@ -109,6 +109,8 @@ def enum_list(cve):
 def main(keywords):
 	for keyword in keywords:
 		cve_list=parse(request(keyword))
+		if args.last!=None:
+			cve_list=cve_list[0:args.last]
 		output(keyword.replace("%20", " "))
 		if args.explonly==False:
 			output("Total vulnerabilities: {}".format(len(cve_list)),1)
@@ -124,7 +126,11 @@ if __name__ == "__main__":
 	parser.add_argument('-f', dest='file', default=[], action="store", type=read_file, help='File with keywords')
 	parser.add_argument('-v', action="count", default=0, help='Description of vulnerability, -vv for search exploits')
 	parser.add_argument('--exploits-only', dest="explonly", action="store_true", help='Show vulnerabilities only with exploits')
+	parser.add_argument('-l', '--last', action="store", type=int, help='Show last N vulnerabilities')
 	args = parser.parse_args()
+	if args.last!=None and args.last<1:
+		parser.print_help()
+		exit(0)
 	if args.explonly==True:
 		args.v=2
 	for keyword in args.keywords:
