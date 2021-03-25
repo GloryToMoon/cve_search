@@ -24,7 +24,7 @@ def output(val, num=0):
 	for i in val.split():
 		if len(i+out)<80:
 			out+=i+" "
-		if len(out+i)>80 or i==val[-1]:
+		if len(out+i)>80 or i==val.split()[-1]:
 			print ("| {}{}".format(" "*num*5,out).replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'").replace("&#39;","'"))
 			out=i
 
