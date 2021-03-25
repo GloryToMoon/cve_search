@@ -23,11 +23,11 @@ def output(val, num=0):
 	val=val.split()
 	out=""
 	for i in val:
-		if len(i)<80:
+		if len(i+out)<80:
 			out+=i+" "
 		if len(out+i)>80 or i==val[-1]:
 			print ("| {}{}".format(" "*num*5,out).replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'").replace("&#39;","'"))
-			out=""
+			out=i
 
 def request(keyword):
 	req=urllib2.Request("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="+keyword)
@@ -45,7 +45,12 @@ def parse(html):
 def nist(cve):
 	url="https://nvd.nist.gov/vuln/detail/"+cve
 	req=urllib2.Request(url)
-	resp=urllib2.urlopen(req)
+	try:
+		resp=urllib2.urlopen(req)
+	except urllib2.HTTPError as error:
+		if e.code>=500:
+			print ("\nhttps://nvd.nist.gov is returned 500 error.\nPlease wait a few seconds.")
+			exit(0)
 	html=resp.read().replace("\t"," ").replace("\r\n"," ")
 	if len(html.split("<h2>")) == 2:
 		return 0
@@ -111,9 +116,10 @@ def main(keywords):
 		cve_list=parse(request(keyword))
 		if args.last!=None:
 			cve_list=cve_list[0:args.last]
-		output(keyword.replace("%20", " "))
-		if args.explonly==False:
-			output("Total vulnerabilities: {}".format(len(cve_list)),1)
+		if len(cve_list)!=0:
+			output(keyword.replace("%20", " "))
+			if args.explonly==False:
+				output("Total vulnerabilities: {}".format(len(cve_list)),1)
 		for cve in cve_list:
 			cve_enumed,exploit_check=(enum_list(cve))
 			if (args.explonly==True and exploit_check==True) or args.explonly==False:
