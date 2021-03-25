@@ -20,9 +20,8 @@ def read_file(file):
 	return out
 
 def output(val, num=0):
-	val=val.split()
 	out=""
-	for i in val:
+	for i in val.split():
 		if len(i+out)<80:
 			out+=i+" "
 		if len(out+i)>80 or i==val[-1]:
