@@ -29,13 +29,10 @@ def output(val, num=0):
 			out=i
 
 def request(keyword):
+	out=[]
 	req=urllib2.Request("https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword="+keyword)
 	resp=urllib2.urlopen(req)
-	return resp.read()
-
-def parse(html):
-	out=[]
-	for i in html.split("<tr>")[8:-5]:
+	for i in resp.read().split("<tr>")[8:-5]:
 		check=i.split('<td valign="top">')[1]
 		if check[0:14]!="** RESERVED **" and check[0:12]!="** REJECT **":
 			out.append(i.split('<a href="/cgi-bin/cvename.cgi?name=')[1].split('">')[0])
@@ -47,7 +44,7 @@ def nist(cve):
 	try:
 		resp=urllib2.urlopen(req)
 	except urllib2.HTTPError as error:
-		if error.code>=500:
+		if e.code>=500:
 			print ("\nhttps://nvd.nist.gov is returned 500 error.\nPlease wait a few seconds.")
 			exit(0)
 	html=resp.read().replace("\t"," ").replace("\r\n"," ")
@@ -112,7 +109,7 @@ def enum_list(cve):
 
 def main(keywords):
 	for keyword in keywords:
-		cve_list=parse(request(keyword))
+		cve_list=request(keyword)
 		if args.last!=None:
 			cve_list=cve_list[0:args.last]
 		if len(cve_list)!=0:
