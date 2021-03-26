@@ -25,7 +25,7 @@ def output(val, num=0):
 		if len(i+out)<80:
 			out+=i+" "
 		if len(out+i)>80 or i==val.split()[-1]:
-			print ("| {}{}".format(" "*num*5,out).replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'").replace("&#39;","'"))
+			print ("| {}{}".format(" "*num*5,out).replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'").replace("&#39;","'").replace("%27","'"))
 			out=i
 
 def request(keyword):
@@ -43,16 +43,20 @@ def parse_cpe(html):
 	html=html.split("id=\"cveTreeJsonDataHidden\"")[1].split("/>")[0].split("{")
 	for i in html:
 		i=i.replace("/o","/a")
-		if "cpe:/a" in i:
+		if len(i.split("/a"))>1:
 			cpe=i.split("cpe:/a:")[1].split("&quot;")[0].split(":")
 			if len(cpe)>=3:
 				out.append("{}:{}".format(cpe[1],":".join(cpe[2:])).replace("~",""))
 			else:
-				version=i.split("&quot; versions")[1].split("&quot;")[0].split()
-				if len(version)>4:
-					out.append("{}:{}-{}".format(cpe[1],version[2],version[-1]).replace("~",""))
+				if len(i.split("&quot; versions"))>1:
+					version=i.split("&quot; versions")[1].split("&quot;")[0].split()
+					if len(version)>4:
+						out.append("{}:{}-{}".format(cpe[1],version[2],version[-1]).replace("~",""))
+					else:
+						out.append("{}:older then {}".format(cpe[1],version[3]).replace("~",""))
 				else:
-					out.append("{}:older then {}".format(cpe[1],version[3]).replace("~",""))
+					out.append("{}".format(cpe[1]))
+
 	return out
 
 def nist(cve):
