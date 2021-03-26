@@ -107,13 +107,16 @@ def enum_list(cve):
 	out=[]
 	exploit_check=False
 	out.append([cve,1])
+	if args.v > 1:
+		exploits=search_exploit(cve)
+		if len(exploits)==0:
+			return out,exploit_check
 	if args.v > 0:
 		second,cpe_list=nist(cve)
 		if second!=0:
 			out.append([second[1],2])
 			out.append([second[2],2])
 	if args.v > 1:
-		exploits=search_exploit(cve)
 		if len(exploits)>1:
 			exploit_check=True
 			out.append(["Total exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,2])
@@ -158,7 +161,7 @@ if __name__ == "__main__":
 	if args.last!=None and args.last<1:
 		parser.print_help()
 		exit(0)
-	if args.explonly==True:
+	if args.explonly==True and args.v<3:
 		args.v=2
 	for keyword in args.keywords:
 		args.file.append(keyword.replace(" ", "%20"))
