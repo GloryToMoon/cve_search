@@ -38,6 +38,23 @@ def request(keyword):
 			out.append(i.split('<a href="/cgi-bin/cvename.cgi?name=')[1].split('">')[0])
 	return out
 
+def parse_cpe(html):
+	out=[]
+	html=html.split("id=\"cveTreeJsonDataHidden\"")[1].split("/>")[0].split("{")
+	for i in html:
+		i=i.replace("/o","/a")
+		if "cpe:/a" in i:
+			cpe=i.split("cpe:/a:")[1].split("&quot;")[0].split(":")
+			if len(cpe)>=3:
+				out.append("{}:{}".format(cpe[1],":".join(cpe[2:])).replace("~",""))
+			else:
+				version=i.split("&quot; versions")[1].split("&quot;")[0].split()
+				if len(version)>4:
+					out.append("{}:{}-{}".format(cpe[1],version[2],version[-1]).replace("~",""))
+				else:
+					out.append("{}:older then {}".format(cpe[1],version[3]).replace("~",""))
+	return out
+
 def nist(cve):
 	url="https://nvd.nist.gov/vuln/detail/"+cve
 	req=urllib2.Request(url)
@@ -50,6 +67,10 @@ def nist(cve):
 	html=resp.read().replace("\t"," ").replace("\r\n"," ")
 	if len(html.split("<h2>")) == 2:
 		return 0
+	if args.v>2:
+		cpe_list=parse_cpe(html)
+	else:
+		cpe_list=[]
 	out=[]
 	out.append(url)
 	score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
@@ -67,7 +88,7 @@ def nist(cve):
 			score=bcolors.CRITICAL+score+bcolors.ENDC
 	out.append("Base Score: "+score)
 	out.append("Description: "+html.split('"vuln-description">')[1].split("</p>")[0])
-	return out
+	return out, cpe_list
 
 def search_exploit(cve):
 	cve="-".join(cve.split("-")[1:])
@@ -87,7 +108,7 @@ def enum_list(cve):
 	exploit_check=False
 	out.append([cve,1])
 	if args.v > 0:
-		second=nist(cve)
+		second,cpe_list=nist(cve)
 		if second!=0:
 			out.append([second[1],2])
 			out.append([second[2],2])
@@ -105,6 +126,10 @@ def enum_list(cve):
 	out.append(["https://cve.mitre.org/cgi-bin/cvename.cgi?name="+cve,3])
 	if args.v > 1 and len(exploits)>1:
 		out.append([exploits[0],3])
+	if args.v > 2 and len(cpe_list)>0:
+		out.append(["Vulnerable versions:", 2])
+		for cpe in cpe_list:
+			out.append([cpe,3])
 	return out,exploit_check
 
 def main(keywords):
