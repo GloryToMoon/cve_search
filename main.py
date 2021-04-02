@@ -37,9 +37,9 @@ def parse_cpe(html):
 	if len(html.split("id=\"cveTreeJsonDataHidden\""))==1:
 		return out
 	html=json.loads(decode_uri(html.split("id=\"cveTreeJsonDataHidden\" value=\"")[1].split("\"/>")[0]))
-	for id in html:
-		for container in id["containers"]:
-		 	for cpe in container["cpes"]:
+	for dataid in html:
+		for container in dataid["containers"]:
+			for cpe in container["cpes"]:
 				out.append(cpe["cpe22Uri"][7:])
 
 	return out
