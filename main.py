@@ -14,7 +14,7 @@ class bcolors:
 def decode_uri(text):
 	return text.replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'").replace("&#39;","'").replace("%27","'")
 
-def read_file(file):
+def read_lf_file(file):
 	file=open(file,"r")
 	out=file.read().split("\n")
 	file.close()
@@ -46,9 +46,9 @@ def parse_cpe(html):
 	if len(html.split("id=\"cveTreeJsonDataHidden\""))==1:
 		return out
 	html=json.loads(decode_uri(html.split("id=\"cveTreeJsonDataHidden\" value=\"")[1].split("\"/>")[0]))
-	for id in html:
-		for container in id["containers"]:
-		 	for cpe in container["cpes"]:
+	for data_id in html:
+		for container in data_id["containers"]:
+			for cpe in container["cpes"]:
 				out.append(cpe["cpe22Uri"][7:])
 	return out
 
@@ -70,7 +70,6 @@ def nist(cve):
 		cpe_list=[]
 	out=[]
 	out.append(url)
-#	print html
 	score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
 	if score.split()[0]=="N/A":
 		score=html.split("Cvss2CalculatorAnchor")[1].split(">")[1].split("<")[0]
@@ -151,7 +150,7 @@ def main(keywords):
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument('keywords', nargs='*', action='store', type=str, help='Keywords for search vulnerability')
-	parser.add_argument('-f', dest='file', default=[], action="store", type=read_file, help='File with keywords')
+	parser.add_argument('-f', dest='file', default=[], action="store", type=read_lf_file, help='File with keywords')
 	parser.add_argument('-v', action="count", default=0, help='Description of vulnerability, -vv for search exploits  -vvv show version of velnerable soft')
 	parser.add_argument('--exploits-only', dest="explonly", action="store_true", help='Show vulnerabilities only with exploits')
 	parser.add_argument('-l', '--last', action="store", type=int, help='Show last N vulnerabilities')
