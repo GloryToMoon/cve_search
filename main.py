@@ -4,7 +4,7 @@ import json
 import argparse
 import urllib2
 
-class bcolors:
+class bcolors(str):
 	LOW = '\033[92m'
 	MEDIUM = '\033[93m'
 	HIGHT = '\033[91m'
