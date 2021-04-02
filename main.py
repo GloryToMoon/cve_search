@@ -11,6 +11,9 @@ class bcolors:
 	CRITICAL = '\033[1;40m'
 	ENDC = '\033[0m'
 
+def decode_uri(text):
+	return text.replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'").replace("&#39;","'").replace("%27","'")
+
 def read_file(file):
 	file=open(file,"r")
 	out=file.read().split("\n")
@@ -25,7 +28,7 @@ def output(val, num=0):
 		if len(i+out)<80:
 			out+=i+" "
 		if len(out+i)>80 or i==val.split()[-1]:
-			print ("| {}{}".format(" "*num*5,out).replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'").replace("&#39;","'").replace("%27","'"))
+			print (decode_uri("| {}{}".format(" "*num*5,out)))
 			out=i
 
 def request(keyword):
@@ -40,22 +43,13 @@ def request(keyword):
 
 def parse_cpe(html):
 	out=[]
-	html=html.split("id=\"cveTreeJsonDataHidden\"")[1].split("/>")[0].split("{")
-	for i in html:
-		i=i.replace("/o","/a")
-		if len(i.split("/a"))>1:
-			cpe=i.split("cpe:/a:")[1].split("&quot;")[0].split(":")
-			if len(cpe)>=3:
-				out.append("{}:{}".format(cpe[1],":".join(cpe[2:])).replace("~",""))
-			else:
-				if len(i.split("&quot; versions"))>1:
-					version=i.split("&quot; versions")[1].split("&quot;")[0].split()
-					if len(version)>4:
-						out.append("{}:{}-{}".format(cpe[1],version[2],version[-1]).replace("~",""))
-					else:
-						out.append("{}:older then {}".format(cpe[1],version[3]).replace("~",""))
-				else:
-					out.append("{}".format(cpe[1]))
+	if len(html.split("id=\"cveTreeJsonDataHidden\""))==1:
+		return out
+	html=json.loads(decode_uri(html.split("id=\"cveTreeJsonDataHidden\" value=\"")[1].split("\"/>")[0]))
+	for id in html:
+		for container in id["containers"]:
+		 	for cpe in container["cpes"]:
+				out.append(cpe["cpe22Uri"][7:])
 
 	return out
 
@@ -77,6 +71,7 @@ def nist(cve):
 		cpe_list=[]
 	out=[]
 	out.append(url)
+#	print html
 	score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
 	if score.split()[0]=="N/A":
 		score=html.split("Cvss2CalculatorAnchor")[1].split(">")[1].split("<")[0]
