@@ -14,16 +14,7 @@ class bcolors(str):
 def decode_uri(text):
 	return text.replace("&amp;","&").replace("&quot;","\"").replace("&lt;","<").replace("&gt;",">").replace("&#039;","'").replace("&#39;","'").replace("%27","'")
 
-def read_lf_file(file):
-	file=open(file,"r")
-	out=file.read().split("\n")
-	file.close()
-	while out.count("")!=0:
-		out.remove("")
-	return out
-
-def output(val, num=0):
-	out=""
+def output(val, num=0, out=""):
 	for i in val.split():
 		if len(i+out)<80:
 			out+=i+" "
@@ -46,10 +37,11 @@ def parse_cpe(html):
 	if len(html.split("id=\"cveTreeJsonDataHidden\""))==1:
 		return out
 	html=json.loads(decode_uri(html.split("id=\"cveTreeJsonDataHidden\" value=\"")[1].split("\"/>")[0]))
-	for data_id in html:
-		for container in data_id["containers"]:
-			for cpe in container["cpes"]:
+	for id in html:
+		for container in id["containers"]:
+		 	for cpe in container["cpes"]:
 				out.append(cpe["cpe22Uri"][7:])
+
 	return out
 
 def nist(cve):
@@ -68,8 +60,7 @@ def nist(cve):
 		cpe_list=parse_cpe(html)
 	else:
 		cpe_list=[]
-	out=[]
-	out.append(url)
+	out=[url]
 	score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
 	if score.split()[0]=="N/A":
 		score=html.split("Cvss2CalculatorAnchor")[1].split(">")[1].split("<")[0]
@@ -94,16 +85,14 @@ def search_exploit(cve):
 	req.add_header("X-Requested-With","XMLHttpRequest")
 	resp=urllib2.urlopen(req)
 	exploits=json.loads(resp.read())
-	out=[]
-	out.append("https://www.exploit-db.com/search?cve="+cve)
+	out=["https://www.exploit-db.com/search?cve="+cve]
 	for exploit in  exploits["data"]:
 		out.append(exploit["description"][1])
 	return out
 
 def enum_list(cve):
-	out=[]
+	out=[[cve,1]]
 	exploit_check=False
-	out.append([cve,1])
 	if args.v > 1:
 		exploits=search_exploit(cve)
 		if len(exploits)==0:
@@ -150,23 +139,22 @@ def main(keywords):
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument('keywords', nargs='*', action='store', type=str, help='Keywords for search vulnerability')
-	parser.add_argument('-f', dest='file', default=[], action="store", type=read_lf_file, help='File with keywords')
+	parser.add_argument('-f', dest='file', default=[], action="store", type=open, help='File with keywords')
 	parser.add_argument('-v', action="count", default=0, help='Description of vulnerability, -vv for search exploits  -vvv show version of velnerable soft')
 	parser.add_argument('--exploits-only', dest="explonly", action="store_true", help='Show vulnerabilities only with exploits')
 	parser.add_argument('-l', '--last', action="store", type=int, help='Show last N vulnerabilities')
 	args = parser.parse_args()
-	if args.last!=None and args.last<1:
-		parser.print_help()
-		exit(0)
 	if args.explonly==True and args.v<3:
 		args.v=2
+	args.file=args.file.read().split("\n")
 	for keyword in args.keywords:
 		args.file.append(keyword.replace(" ", "%20"))
-	args.file=list(set(args.file))
-	if len(args.file)<1:
+	while args.file.count("")!=0:
+		args.file.remove("")
+	if len(args.file)<1 or (args.last!=None and args.last<1):
 		parser.print_help()
 		exit()
 	try:
-		main(args.file)
+		main(list(set(args.file)))
 	except KeyboardInterrupt:
 		print ("\nExit...")
