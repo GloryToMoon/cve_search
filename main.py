@@ -50,7 +50,6 @@ def parse_cpe(html):
 		for container in id["containers"]:
 		 	for cpe in container["cpes"]:
 				out.append(cpe["cpe22Uri"][7:])
-
 	return out
 
 def nist(cve):
