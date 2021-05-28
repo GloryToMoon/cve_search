@@ -95,7 +95,7 @@ def enum_list(cve):
 	exploit_check=False
 	if args.v > 1:
 		exploits=search_exploit(cve)
-		if len(exploits)==0:
+		if len(exploits)==1 and args.explonly==True:
 			return out,exploit_check
 	if args.v > 0:
 		second,cpe_list=nist(cve)
