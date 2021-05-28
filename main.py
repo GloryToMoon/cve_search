@@ -146,7 +146,8 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 	if args.explonly==True and args.v<3:
 		args.v=2
-	args.file=args.file.read().split("\n")
+	if args.file:
+		args.file=args.file.read().split("\n")
 	for keyword in args.keywords:
 		args.file.append(keyword.replace(" ", "%20"))
 	while args.file.count("")!=0:
