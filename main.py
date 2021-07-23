@@ -105,7 +105,7 @@ def enum_list(cve):
 	if args.v > 1:
 		if len(exploits)>1:
 			exploit_check=True
-			out.append(["Total exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,2])
+			out.append(["Tottal exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,2])
 			out.append(["Exploits:",3])
 			for exploit in exploits[1:]:
 				out.append([exploit,4])
@@ -129,7 +129,7 @@ def main(keywords):
 		if len(cve_list)!=0:
 			output(keyword.replace("%20", " "))
 			if args.explonly==False:
-				output("Total vulnerabilities: {}".format(len(cve_list)),1)
+				output("Tottal vulnerabilities: {}".format(len(cve_list)),1)
 		for cve in cve_list:
 			cve_enumed,exploit_check=(enum_list(cve))
 			if (args.explonly==True and exploit_check==True) or args.explonly==False:
