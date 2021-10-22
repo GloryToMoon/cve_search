@@ -19,7 +19,7 @@ def output(val, num=0, out=""):
 		if len(i+out)<80:
 			out+=i+" "
 		if len(out+i)>80 or i==val.split()[-1]:
-			print (decode_uri("| {}{}".format(" "*num*5,out)))
+			print ("| {}{}".format(" "*num*5,decode_uri(out)))
 			out=i
 
 def request(keyword):
@@ -55,7 +55,7 @@ def nist(cve):
 			exit(0)
 	html=resp.read().replace("\t"," ").replace("\r\n"," ")
 	if len(html.split("<h2>")) == 2:
-		return 0
+		return 0,0
 	if args.v>2:
 		cpe_list=parse_cpe(html)
 	else:
@@ -95,17 +95,24 @@ def enum_list(cve):
 	exploit_check=False
 	if args.v > 1:
 		exploits=search_exploit(cve)
-		if len(exploits)==1 and args.explonly==True:
-			return out,exploit_check
 	if args.v > 0:
 		second,cpe_list=nist(cve)
+		if cpe_list==0:
+			return [[cve,1], ["Info not found",2]],True
 		if second!=0:
 			out.append([second[1],2])
 			out.append([second[2],2])
+	if args.v>2 and args.version!=None:
+		cpe_check=False
+		for cpe in cpe_list:
+			if args.version in ":".join(cpe.split(":")[2:]):
+				cpe_check=True
+		if not cpe_check:
+			return [],exploit_check
 	if args.v > 1:
 		if len(exploits)>1:
 			exploit_check=True
-			out.append(["Tottal exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,2])
+			out.append(["Total exploits: "+bcolors.HIGHT+str(len(exploits)-1)+bcolors.ENDC,2])
 			out.append(["Exploits:",3])
 			for exploit in exploits[1:]:
 				out.append([exploit,4])
@@ -123,39 +130,40 @@ def enum_list(cve):
 
 def main(keywords):
 	for keyword in keywords:
-		cve_list=request(keyword)
+		cve_list=request(keyword.replace(" ", "%20").replace("\n",""))
 		if args.last!=None:
 			cve_list=cve_list[0:args.last]
 		if len(cve_list)!=0:
-			output(keyword.replace("%20", " "))
-			if args.explonly==False:
-				output("Tottal vulnerabilities: {}".format(len(cve_list)),1)
+			output(keyword)
+			if args.explonly==False and args.version==None:
+				output("Total vulnerabilities: {}".format(len(cve_list)),1)
 		for cve in cve_list:
 			cve_enumed,exploit_check=(enum_list(cve))
 			if (args.explonly==True and exploit_check==True) or args.explonly==False:
 				for string in cve_enumed:
+					if args.grepmatch:
+						string[0]=string[0].replace(keyword,bcolors.HIGHT+keyword+bcolors.ENDC)
 					output(string[0],string[1])
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument('keywords', nargs='*', action='store', type=str, help='Keywords for search vulnerability')
 	parser.add_argument('-f', dest='file', default=[], action="store", type=open, help='File with keywords')
-	parser.add_argument('-v', action="count", default=0, help='Description of vulnerability, -vv for search exploits  -vvv show version of velnerable soft')
+	parser.add_argument('-v', action="count", default=0, help='Description of vulnerability, -vv for search exploits  -vvv show version of vulnerable soft')
 	parser.add_argument('--exploits-only', dest="explonly", action="store_true", help='Show vulnerabilities only with exploits')
 	parser.add_argument('-l', '--last', action="store", type=int, help='Show last N vulnerabilities')
+	parser.add_argument('-V', '--version', action="store", type=str, help='Match vulnerable versions')
+	parser.add_argument('--match', dest="grepmatch", action="store_true", help='Match keywords')
 	args = parser.parse_args()
 	if args.explonly==True and args.v<3:
 		args.v=2
-	if args.file:
-		args.file=args.file.read().split("\n")
-	for keyword in args.keywords:
-		args.file.append(keyword.replace(" ", "%20"))
-	while args.file.count("")!=0:
+	args.file=list(set(args.file+args.keywords))
+	for i in range(args.file.count("")):
 		args.file.remove("")
 	if len(args.file)<1 or (args.last!=None and args.last<1):
 		parser.print_help()
 		exit()
 	try:
-		main(list(set(args.file)))
+		main(args.file)
 	except KeyboardInterrupt:
 		print ("\nExit...")
