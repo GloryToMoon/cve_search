@@ -157,7 +157,11 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 	if args.explonly==True and args.v<3:
 		args.v=2
-	args.file=list(set(args.file.read().split("\n")+args.keywords))
+	try:
+		args.file=args.file.read().split("\n")
+	except:
+		pass
+	args.file=list(set(args.file+args.keywords))
 	for i in range(args.file.count("")):
 		args.file.remove("")
 	if len(args.file)<1 or (args.last!=None and args.last<1):
