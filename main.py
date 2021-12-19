@@ -16,6 +16,9 @@ def decode_uri(text):
 
 def output(val, num=0, out=""):
 	for i in val.split():
+		if len(val.split())==1:
+			print ("| {}{}".format(" "*num*5,decode_uri(val)))
+			return 0
 		if len(i+out)<80:
 			out+=i+" "
 		if len(out+i)>80 or i==val.split()[-1]:
@@ -44,6 +47,18 @@ def parse_cpe(html):
 
 	return out
 
+def nist_exploit_grep(html):
+	html=html.split("<tr data-testid=\"vuln-hyperlinks-row-")[1:]
+	ref=[]
+	for i in html:
+		link=i.split("href=\"")[1].split("\"")[0]
+		types=[]
+		for type in i.split("<span class=\"badge\">")[1:]:
+			types.append(type.split("</span>")[0])
+		if types.count("Exploit")==1:
+			ref.append(link)
+	return ref
+
 def nist(cve):
 	url="https://nvd.nist.gov/vuln/detail/"+cve
 	req=urllib2.Request(url)
@@ -51,17 +66,22 @@ def nist(cve):
 		resp=urllib2.urlopen(req)
 	except urllib2.HTTPError as error:
 		if error.code>=500:
-			print ("\nhttps://nvd.nist.gov is returned 500 error.\nPlease wait a few seconds.")
+			print ("| https://nvd.nist.gov is returned 500 error.\n| Please wait a few seconds.")
 			exit(0)
 	html=resp.read().replace("\t"," ").replace("\r\n"," ")
+	exploits=nist_exploit_grep(html)
 	if len(html.split("<h2>")) == 2:
-		return 0,0
+		return 0,0,[]
 	if args.v>2:
 		cpe_list=parse_cpe(html)
 	else:
 		cpe_list=[]
 	out=[url]
-	score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
+	try:
+		score=html.split('data-testid="vuln-cvss3')[3].split('>')[1].split('</a')[0]
+	except:
+		print ("| Encoding error in nvd.nist.gov :(\n| try later pls")
+		return 0,0,[]
 	if score.split()[0]=="N/A":
 		score=html.split("Cvss2CalculatorAnchor")[1].split(">")[1].split("<")[0]
 	score_num=score.split()[0]
@@ -76,7 +96,7 @@ def nist(cve):
 			score=bcolors.CRITICAL+score+bcolors.ENDC
 	out.append("Base Score: "+score)
 	out.append("Description: "+html.split('"vuln-description">')[1].split("</p>")[0])
-	return out, cpe_list
+	return out, cpe_list, exploits
 
 def search_exploit(cve):
 	cve="-".join(cve.split("-")[1:])
@@ -85,7 +105,7 @@ def search_exploit(cve):
 	req.add_header("X-Requested-With","XMLHttpRequest")
 	resp=urllib2.urlopen(req)
 	exploits=json.loads(resp.read())
-	out=["https://www.exploit-db.com/search?cve="+cve]
+	out=[]
 	for exploit in  exploits["data"]:
 		out.append(exploit["description"][1])
 	return out
@@ -95,8 +115,13 @@ def enum_list(cve):
 	exploit_check=False
 	if args.v > 1:
 		exploits=search_exploit(cve)
+		if len(exploits)>0:
+			exploits.insert(0,True)
+		else:
+			exploits.insert(0,False)
 	if args.v > 0:
-		second,cpe_list=nist(cve)
+		second,cpe_list,exploits_nist=nist(cve)
+		exploits+=exploits_nist
 		if cpe_list==0:
 			return [[cve,1], ["Info not found",2]],True
 		if second!=0:
@@ -120,8 +145,8 @@ def enum_list(cve):
 	if args.v>0 and second!=0:
 		out.append([second[0],3])
 	out.append(["https://cve.mitre.org/cgi-bin/cvename.cgi?name="+cve,3])
-	if args.v > 1 and len(exploits)>1:
-		out.append([exploits[0],3])
+	if args.v > 1 and exploits[0]:
+		out.append(["https://www.exploit-db.com/search?cve="+cve,3])
 	if args.v > 2 and len(cpe_list)>0:
 		out.append(["Vulnerable versions:", 2])
 		for cpe in cpe_list:
