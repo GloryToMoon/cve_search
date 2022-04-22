@@ -23,7 +23,7 @@ def output(val, num=0, out=""):
 			out+=i+" "
 		if len(out+i)>80 or i==val.split()[-1]:
 			print ("| {}{}".format(" "*num*5,decode_uri(out)))
-			out=i
+			out=""
 
 def request(keyword):
 	out=[]
