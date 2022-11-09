@@ -8,7 +8,7 @@ class bcolors(str):
 	LOW = '\033[92m'
 	MEDIUM = '\033[93m'
 	HIGHT = '\033[91m'
-	CRITICAL = '\033[1;40m'
+	CRITICAL = '\033[1;37;40m'
 	ENDC = '\033[0m'
 
 def decode_uri(text):
